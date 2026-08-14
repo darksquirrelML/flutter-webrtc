@@ -18,6 +18,7 @@ import android.os.Handler;
 import android.os.Looper;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.dart.DartExecutor;
+import io.flutter.FlutterInjector;
 
 /**
  * Captures video frames from a hidden Flutter widget, rendered onto a
@@ -139,9 +140,12 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
             public void run() {
-                FlutterEngine engine = new FlutterEngine(applicationContext);
-                engine.getDartExecutor().executeDartEntrypoint(
-                        DartExecutor.DartEntrypoint.createDefault());
+		FlutterEngine engine = new FlutterEngine(applicationContext);
+                DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
+                        FlutterInjector.instance().flutterLoader().findAppBundlePath(),
+                        "virtualDisplayEntrypoint");
+                engine.getDartExecutor().executeDartEntrypoint(entrypoint);
+
 
                 presentation = new VirtualDisplayPresentation(applicationContext, display, engine);
                 presentation.show();

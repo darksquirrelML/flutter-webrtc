@@ -21,6 +21,43 @@ void main() {
   runApp(MyApp());
 }
 
+// This is the specific entry point our hidden capture engine will run —
+// completely separate from the app's normal home screen. In the real IS
+// app, this would show the clean, full-screen active camera instead.
+@pragma('vm:entry-point')
+void virtualDisplayEntrypoint() {
+  runApp(MaterialApp(
+    debugShowCheckedModeBanner: false,
+    home: Scaffold(
+      backgroundColor: Colors.black,
+      body: Center(
+        child: TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: const Duration(seconds: 2),
+          builder: (context, value, child) {
+            return Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                color: Color.lerp(Colors.red, Colors.blue, value),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Center(
+                child: Text(
+                  'IS CLEAN VIDEO',
+                  style: TextStyle(color: Colors.white, fontSize: 14),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+            );
+          },
+          onEnd: () {},
+        ),
+      ),
+    ),
+  ));
+}
+
 Future<bool> startForegroundService() async {
   final androidConfig = FlutterBackgroundAndroidConfig(
     notificationTitle: 'Title of the notification',
