@@ -868,6 +868,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         getDisplayMedia(constraintsMap, result);
         break;
       }
+
+      case "getVirtualDisplayMedia": {
+        Map<String, Object> constraints = call.argument("constraints");
+        ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
+        getVirtualDisplayMedia(constraintsMap, result);
+        break;
+      }
+
       case "startRecordToFile":
         //This method can a lot of different exceptions
         //so we should notify plugin user about them
@@ -1731,6 +1739,19 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
     getUserMediaImpl.getDisplayMedia(constraints, result, mediaStream);
   }
+
+  public void getVirtualDisplayMedia(ConstraintsMap constraints, Result result) {
+    String streamId = getNextStreamUUID();
+    MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
+
+    if (mediaStream == null) {
+      resultError("getVirtualDisplayMedia", "Failed to create new media stream", result);
+      return;
+    }
+
+    getUserMediaImpl.getVirtualDisplayMedia(constraints, result, mediaStream);
+  }
+
 
   public void getSources(Result result) {
     ConstraintsArray array = new ConstraintsArray();

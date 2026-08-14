@@ -69,6 +69,25 @@ class MediaDeviceNative extends MediaDevices {
     }
   }
 
+  Future<MediaStream> getVirtualDisplayMedia(
+      Map<String, dynamic> mediaConstraints) async {
+    try {
+      final response = await WebRTC.invokeMethod(
+        'getVirtualDisplayMedia',
+        <String, dynamic>{'constraints': mediaConstraints},
+      );
+      if (response == null) {
+        throw Exception('getVirtualDisplayMedia return null, something wrong');
+      }
+      String streamId = response['streamId'];
+      var stream = MediaStreamNative(streamId, 'local');
+      stream.setMediaTracks(response['audioTracks'], response['videoTracks']);
+      return stream;
+    } on PlatformException catch (e) {
+      throw 'Unable to getVirtualDisplayMedia: ${e.message}';
+    }
+  }
+
   @override
   Future<List<dynamic>> getSources() async {
     try {

@@ -616,6 +616,69 @@ public class GetUserMediaImpl {
         result.success(successResult.toMap());
     }
 
+    void getVirtualDisplayMedia(final ConstraintsMap constraints, final Result result, final MediaStream mediaStream) {
+	int width = constraints.hasKey("width") ? constraints.getInt("width") : 1280;
+        int height = constraints.hasKey("height") ? constraints.getInt("height") : 720;
+        int fps = constraints.hasKey("fps") ? constraints.getInt("fps") : 30;
+
+        VideoCapturer videoCapturer = new VirtualDisplayCapturer(applicationContext);
+
+        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
+        VideoSource videoSource = pcFactory.createVideoSource(true);
+
+        String threadName = Thread.currentThread().getName() + "_texture_virtualdisplay_thread";
+        SurfaceTextureHelper surfaceTextureHelper =
+                SurfaceTextureHelper.create(threadName, EglUtils.getRootEglBaseContext());
+        videoCapturer.initialize(
+                surfaceTextureHelper, applicationContext, videoSource.getCapturerObserver());
+
+        videoCapturer.startCapture(width, height, fps);
+        Log.d(TAG, "VirtualDisplayCapturer.startCapture: " + width + "x" + height + "@" + fps);
+
+        String trackId = stateProvider.getNextTrackUUID();
+        VideoTrack displayTrack = pcFactory.createVideoTrack(trackId, videoSource);
+
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        ConstraintsMap successResult = new ConstraintsMap();
+
+        if (displayTrack != null) {
+            String id = displayTrack.id();
+
+            LocalVideoTrack displayLocalVideoTrack = new LocalVideoTrack(displayTrack);
+            videoSource.setVideoProcessor(displayLocalVideoTrack);
+
+            stateProvider.putLocalTrack(id, displayLocalVideoTrack);
+
+            ConstraintsMap track_ = new ConstraintsMap();
+            String kind = displayTrack.kind();
+
+            track_.putBoolean("enabled", displayTrack.enabled());
+            track_.putString("id", id);
+            track_.putString("kind", kind);
+            track_.putString("label", kind);
+            track_.putString("readyState", displayTrack.state().toString());
+            track_.putBoolean("remote", false);
+
+            videoTracks.pushMap(track_);
+            mediaStream.addTrack(displayTrack);
+        }
+
+        String streamId = mediaStream.getId();
+        Log.d(TAG, "MediaStream id: " + streamId);
+        stateProvider.putLocalStream(streamId, mediaStream);
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", videoTracks.toArrayList());
+        result.success(successResult.toMap());
+    }
+
+
+
+
+
+
+
     /**
      * Implements {@code getUserMedia} with the knowledge that the necessary permissions have already
      * been granted. If the necessary permissions have not been granted yet, they will NOT be
