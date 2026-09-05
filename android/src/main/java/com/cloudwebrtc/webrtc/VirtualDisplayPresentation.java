@@ -9,6 +9,7 @@ import android.widget.FrameLayout;
 
 import io.flutter.embedding.android.FlutterView;
 import io.flutter.embedding.engine.FlutterEngine;
+import io.flutter.embedding.android.FlutterTextureView;
 
 /**
  * Renders a Flutter widget tree onto a private VirtualDisplay via a
@@ -31,8 +32,7 @@ public class VirtualDisplayPresentation extends Presentation {
         setContentView(container, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
-
-	FlutterView flutterView = new FlutterView(getContext(), io.flutter.embedding.android.FlutterView.RenderMode.texture);
+	FlutterView flutterView = new FlutterView(getContext(), new FlutterTextureView(getContext()));
         container.addView(flutterView, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
