@@ -32,7 +32,7 @@ public class VirtualDisplayPresentation extends Presentation {
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
 
-        FlutterView flutterView = new FlutterView(getContext());
+	FlutterView flutterView = new FlutterView(getContext(), io.flutter.embedding.android.FlutterView.RenderMode.texture);
         container.addView(flutterView, new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.MATCH_PARENT));
