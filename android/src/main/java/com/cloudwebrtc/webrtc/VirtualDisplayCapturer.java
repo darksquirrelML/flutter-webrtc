@@ -137,20 +137,31 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         final Display display = virtualDisplay.getDisplay();
 
         // FlutterEngine + Presentation must be created on the main thread.
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
+
+	new Handler(Looper.getMainLooper()).post(new Runnable() {
             @Override
-            public void run() {
-		FlutterEngine engine = new FlutterEngine(applicationContext);
-                DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
-                        FlutterInjector.instance().flutterLoader().findAppBundlePath(),
-                        "virtualDisplayEntrypoint");
-                engine.getDartExecutor().executeDartEntrypoint(entrypoint);
+    	    public void run() {
+                io.flutter.embedding.engine.loader.FlutterLoader loader =
+                        FlutterInjector.instance().flutterLoader();
 
+                if (!loader.initialized()) {
+                    loader.startInitialization(applicationContext);
+                }
+                loader.ensureInitializationComplete(applicationContext, null);
 
-                presentation = new VirtualDisplayPresentation(applicationContext, display, engine);
-                presentation.show();
-            }
-        });
+        	String bundlePath = loader.findAppBundlePath();
+        	android.util.Log.d("VirtualDisplayCapturer", "Resolved bundle path: " + bundlePath);
+
+        	FlutterEngine engine = new FlutterEngine(applicationContext);
+        	DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
+                	bundlePath,
+                	"virtualDisplayEntrypoint");
+        	engine.getDartExecutor().executeDartEntrypoint(entrypoint);
+
+        	presentation = new VirtualDisplayPresentation(applicationContext, display, engine);
+        	presentation.show();
+    	    }
+	});
     }
 
 
