@@ -153,9 +153,10 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         	android.util.Log.d("VirtualDisplayCapturer", "Resolved bundle path: " + bundlePath);
 
         	FlutterEngine engine = new FlutterEngine(applicationContext);
-        	DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
-                	bundlePath,
-                	"virtualDisplayEntrypoint");
+		DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
+        		bundlePath,
+        		"package:internet_sport_virtual_display_test/custom_code/virtual_display_entrypoint.dart",
+        		"virtualDisplayEntrypoint");
         	engine.getDartExecutor().executeDartEntrypoint(entrypoint);
 
         	presentation = new VirtualDisplayPresentation(applicationContext, display, engine);
