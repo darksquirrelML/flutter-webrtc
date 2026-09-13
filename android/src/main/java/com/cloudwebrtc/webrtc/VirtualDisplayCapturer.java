@@ -19,6 +19,7 @@ import android.os.Looper;
 import io.flutter.embedding.engine.FlutterEngine;
 import io.flutter.embedding.engine.dart.DartExecutor;
 import io.flutter.FlutterInjector;
+import com.cloudwebrtc.webrtc.FlutterWebRTCPlugin;
 
 /**
  * Captures video frames from a hidden Flutter widget, rendered onto a
@@ -153,6 +154,7 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         	android.util.Log.d("VirtualDisplayCapturer", "Resolved bundle path: " + bundlePath);
 
         	FlutterEngine engine = new FlutterEngine(applicationContext);
+		engine.getPlugins().add(new FlutterWebRTCPlugin());
 		DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
         		bundlePath,
         		"package:internet_sport_virtual_display_test/custom_code/virtual_display_entrypoint.dart",
