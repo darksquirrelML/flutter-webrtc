@@ -52,6 +52,7 @@ public class PermissionUtils {
       }
 
       grantResults[i] = grantResult;
+      android.util.Log.d("PermissionUtils", ">>> MY_DEBUG: permission=" + permissions[i] + " grantResult=" + grantResult + " (GRANTED=" + PackageManager.PERMISSION_GRANTED + ")");
       if (grantResult != PackageManager.PERMISSION_GRANTED) {
         permissionsGranted = false;
       }
