@@ -490,8 +490,11 @@ public class GetUserMediaImpl {
                     @Override
                     public void invoke(Object... args) {
                         List<String> grantedPermissions = (List<String>) args[0];
+			Log.d(TAG, ">>> MY_DEBUG: permission successCallback fired, granted=" + grantedPermissions);
+
 
                         getUserMedia(constraints, result, mediaStream, grantedPermissions);
+			Log.d(TAG, ">>> MY_DEBUG: getUserMedia(4-arg overload) call completed/returned");
                     }
                 },
                 /* errorCallback */ new Callback() {
