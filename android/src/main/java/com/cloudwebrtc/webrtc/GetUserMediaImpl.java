@@ -1076,6 +1076,7 @@ public class GetUserMediaImpl {
             final ArrayList<String> permissions,
             final Callback successCallback,
             final Callback errorCallback) {
+	Log.d(TAG, ">>> MY_DEBUG: requestPermissions() called with: " + permissions);
         PermissionUtils.Callback callback =
                 (permissions_, grantResults) -> {
                     List<String> grantedPermissions = new ArrayList<>();
@@ -1107,10 +1108,12 @@ public class GetUserMediaImpl {
 
         final Activity activity = stateProvider.getActivity();
         final Context context = stateProvider.getApplicationContext();
+	Log.d(TAG, ">>> MY_DEBUG: about to call PermissionUtils.requestPermissions, activity=" + activity);
         PermissionUtils.requestPermissions(
                 context,
                 activity,
                 permissions.toArray(new String[permissions.size()]), callback);
+	Log.d(TAG, ">>> MY_DEBUG: PermissionUtils.requestPermissions returned");
     }
 
     void switchCamera(String id, Result result) {
