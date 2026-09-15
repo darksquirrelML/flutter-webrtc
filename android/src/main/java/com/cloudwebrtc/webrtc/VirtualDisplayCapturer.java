@@ -40,6 +40,13 @@ public class VirtualDisplayCapturer implements VideoCapturer {
     private SurfaceTextureHelper surfaceTextureHelper;
     private CapturerObserver capturerObserver;
     private VirtualDisplayPresentation presentation;
+    private static io.flutter.plugin.common.MethodChannel bridgeChannel;
+
+    public static void switchVirtualDisplayCamera() {
+        if (bridgeChannel != null) {
+            bridgeChannel.invokeMethod("switchCamera", null);
+        }
+    }
     private volatile boolean isDisposed = false;
 
     public VirtualDisplayCapturer(Context applicationContext) {
@@ -160,7 +167,8 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         		"package:internet_sport_virtual_display_test/custom_code/virtual_display_entrypoint.dart",
         		"virtualDisplayEntrypoint");
         	engine.getDartExecutor().executeDartEntrypoint(entrypoint);
-
+        	bridgeChannel = new io.flutter.plugin.common.MethodChannel(
+                	engine.getDartExecutor().getBinaryMessenger(), "virtual_display_bridge");
         	presentation = new VirtualDisplayPresentation(applicationContext, display, engine);
         	presentation.show();
     	    }

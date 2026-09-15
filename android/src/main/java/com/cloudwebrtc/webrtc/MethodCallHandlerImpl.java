@@ -368,9 +368,13 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
 
   @Override
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
-
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
+      case "switchVirtualDisplayCamera": {
+        VirtualDisplayCapturer.switchVirtualDisplayCamera();
+        result.success(null);
+        break;
+      }
       case "initialize": {
         int networkIgnoreMask = Options.ADAPTER_TYPE_UNKNOWN;
         Map<String, Object> options = call.argument("options");
