@@ -91,6 +91,7 @@ public class VirtualDisplayCapturer implements VideoCapturer {
 
     @Override
     public void stopCapture() {
+        android.util.Log.d("VDC_DEBUG", ">>> stopCapture CALLED", new Throwable("who called stopCapture"));
         if (isDisposed) return;
         ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
             @Override
@@ -115,6 +116,7 @@ public class VirtualDisplayCapturer implements VideoCapturer {
 
     @Override
     public synchronized void dispose() {
+        android.util.Log.d("VDC_DEBUG", ">>> dispose CALLED", new Throwable("who called dispose"));
         isDisposed = true;
     }
 
