@@ -107,6 +107,7 @@ public class GetUserMediaImpl {
 
     private final Map<String, VideoCapturerInfoEx> mVideoCapturers = new HashMap<>();
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
+    private final Map<String, Object[]> mVirtualDisplayRefs = new HashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
@@ -640,6 +641,7 @@ public class GetUserMediaImpl {
 
         String trackId = stateProvider.getNextTrackUUID();
         VideoTrack displayTrack = pcFactory.createVideoTrack(trackId, videoSource);
+        mVirtualDisplayRefs.put(trackId, new Object[] { videoCapturer, videoSource, surfaceTextureHelper });
 
         ConstraintsArray audioTracks = new ConstraintsArray();
         ConstraintsArray videoTracks = new ConstraintsArray();
