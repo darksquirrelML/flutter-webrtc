@@ -91,7 +91,6 @@ public class VirtualDisplayCapturer implements VideoCapturer {
 
     @Override
     public void stopCapture() {
-        android.util.Log.d("VDC_DEBUG", ">>> stopCapture CALLED", new Throwable("who called stopCapture"));
         if (isDisposed) return;
         if (bridgeChannel != null) {
             bridgeChannel.invokeMethod("stopCamera", null);
@@ -119,7 +118,6 @@ public class VirtualDisplayCapturer implements VideoCapturer {
 
     @Override
     public synchronized void dispose() {
-        android.util.Log.d("VDC_DEBUG", ">>> dispose CALLED", new Throwable("who called dispose"));
         isDisposed = true;
     }
 
