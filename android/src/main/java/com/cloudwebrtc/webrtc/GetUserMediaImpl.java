@@ -1012,6 +1012,21 @@ public class GetUserMediaImpl {
     }
 
     void removeVideoCapturer(String id) {
+        Object[] vdRefs = mVirtualDisplayRefs.remove(id);
+        if (vdRefs != null) {
+            Log.d(TAG, "removeVideoCapturer: shutting down virtual display for " + id);
+            VideoCapturer vdCapturer = (VideoCapturer) vdRefs[0];
+            SurfaceTextureHelper vdHelper = (SurfaceTextureHelper) vdRefs[2];
+            try {
+                vdCapturer.stopCapture();
+            } catch (Exception e) {
+                Log.e(TAG, "removeVideoCapturer: failed to stop virtual display", e);
+            }
+            vdCapturer.dispose();
+            vdHelper.dispose();
+            return;
+        }
+
         VideoCapturerInfoEx info = mVideoCapturers.get(id);
         if (info == null) return;
 
