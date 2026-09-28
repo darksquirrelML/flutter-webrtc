@@ -93,6 +93,9 @@ public class VirtualDisplayCapturer implements VideoCapturer {
     public void stopCapture() {
         android.util.Log.d("VDC_DEBUG", ">>> stopCapture CALLED", new Throwable("who called stopCapture"));
         if (isDisposed) return;
+        if (bridgeChannel != null) {
+            bridgeChannel.invokeMethod("stopCamera", null);
+        }
         ThreadUtils.invokeAtFrontUninterruptibly(surfaceTextureHelper.getHandler(), new Runnable() {
             @Override
             public void run() {
