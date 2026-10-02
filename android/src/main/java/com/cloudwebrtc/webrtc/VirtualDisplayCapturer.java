@@ -167,7 +167,7 @@ public class VirtualDisplayCapturer implements VideoCapturer {
 		engine.getPlugins().add(new FlutterWebRTCPlugin());
 		DartExecutor.DartEntrypoint entrypoint = new DartExecutor.DartEntrypoint(
         		bundlePath,
-        		"package:internet_sport_virtual_display_test/custom_code/virtual_display_entrypoint.dart",
+                        "package:internet_sport/custom_code/virtual_display_entrypoint.dart",
         		"virtualDisplayEntrypoint");
         	engine.getDartExecutor().executeDartEntrypoint(entrypoint);
         	bridgeChannel = new io.flutter.plugin.common.MethodChannel(
