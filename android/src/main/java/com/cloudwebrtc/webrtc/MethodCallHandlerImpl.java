@@ -1895,17 +1895,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void mediaStreamRemoveTrack(final String streamId, final String trackId, Result result) {
     MediaStream mediaStream = localStreams.get(streamId);
     if (mediaStream != null) {
-      LocalTrack track;
-      synchronized (localTracks) {
-        track = localTracks.get(trackId);
-      }
+      MediaStreamTrack track = getTrackForId(trackId, null);
       if (track != null) {
         String kind = track.kind();
         if (kind.equals("audio")) {
-          mediaStream.removeTrack((AudioTrack) track.track);
+          mediaStream.removeTrack((AudioTrack) track);
           result.success(null);
         } else if (kind.equals("video")) {
-          mediaStream.removeTrack((VideoTrack) track.track);
+          mediaStream.removeTrack((VideoTrack) track);
           result.success(null);
         } else {
           resultError("mediaStreamRemoveTrack", "mediaStreamRemoveTrack() track [" + trackId + "] has unsupported type: " + kind, result);
@@ -2494,15 +2491,14 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
       synchronized (localTracks) {
         track = localTracks.get(trackId);
       }
-      if (trackId.length() > 0) {
-        if (track == null) {
+      if (track != null) {
+        mediaStreamTrack = track.track;
+      } else if (trackId.length() > 0) {
+        mediaStreamTrack = getTrackForId(trackId, null);
+        if (mediaStreamTrack == null) {
           resultError("rtpSenderSetTrack", "track is null", result);
           return;
         }
-      }
-
-      if(track != null) {
-        mediaStreamTrack = track.track;
       }
       pco.rtpSenderSetTrack(rtpSenderId, mediaStreamTrack, result, replace);
     }
