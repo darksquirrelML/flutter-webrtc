@@ -48,6 +48,30 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         }
     }
     private volatile boolean isDisposed = false;
+    private volatile boolean useExternalSource = false;
+    private org.webrtc.VideoTrack externalTrack;
+    private final VideoSink externalSink = new VideoSink() {
+        @Override
+        public void onFrame(VideoFrame frame) {
+            if (isDisposed || !useExternalSource) return;
+            capturerObserver.onFrameCaptured(
+                    new VideoFrame(frame.getBuffer(), frame.getRotation(), System.nanoTime()));
+        }
+    };
+
+    public synchronized void setExternalSource(org.webrtc.VideoTrack track) {
+        if (externalTrack != null) {
+            externalTrack.removeSink(externalSink);
+            externalTrack = null;
+        }
+        if (track != null) {
+            externalTrack = track;
+            track.addSink(externalSink);
+            useExternalSource = true;
+        } else {
+            useExternalSource = false;
+        }
+    }
 
     public VirtualDisplayCapturer(Context applicationContext) {
         this.applicationContext = applicationContext;
@@ -83,7 +107,7 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         surfaceTextureHelper.startListening(new VideoSink() {
             @Override
             public void onFrame(VideoFrame frame) {
-                if (isDisposed) return;
+                if (isDisposed || useExternalSource) return;
                 capturerObserver.onFrameCaptured(frame);
             }
         });

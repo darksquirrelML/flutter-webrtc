@@ -370,6 +370,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
+      case "setVirtualDisplaySource": {
+        String sourceTrackId = call.argument("trackId");
+        org.webrtc.VideoTrack sourceTrack = null;
+        if (sourceTrackId != null && sourceTrackId.length() > 0) {
+          MediaStreamTrack found = getTrackForId(sourceTrackId, null);
+          if (found instanceof org.webrtc.VideoTrack) {
+            sourceTrack = (org.webrtc.VideoTrack) found;
+          } else {
+            result.error("setVirtualDisplaySource", "video track not found: " + sourceTrackId, null);
+            break;
+          }
+        }
+        getUserMediaImpl.setVirtualDisplaySource(sourceTrack);
+        result.success(null);
+        break;
+      }
       case "switchVirtualDisplayCamera": {
         VirtualDisplayCapturer.switchVirtualDisplayCamera();
         result.success(null);

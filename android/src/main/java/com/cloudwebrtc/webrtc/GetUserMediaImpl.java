@@ -1011,6 +1011,14 @@ public class GetUserMediaImpl {
         return trackParams;
     }
 
+    void setVirtualDisplaySource(org.webrtc.VideoTrack track) {
+        for (Object[] refs : mVirtualDisplayRefs.values()) {
+            if (refs[0] instanceof VirtualDisplayCapturer) {
+                ((VirtualDisplayCapturer) refs[0]).setExternalSource(track);
+            }
+        }
+    }
+
     void removeVideoCapturer(String id) {
         Object[] vdRefs = mVirtualDisplayRefs.remove(id);
         if (vdRefs != null) {
