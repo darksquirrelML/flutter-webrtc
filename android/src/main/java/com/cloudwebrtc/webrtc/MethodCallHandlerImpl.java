@@ -889,6 +889,11 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
         break;
       }
 
+      case "getVirtualDisplayPreview": {
+        getVirtualDisplayPreview(result);
+        break;
+      }
+
       case "getVirtualDisplayMedia": {
         Map<String, Object> constraints = call.argument("constraints");
         ConstraintsMap constraintsMap = new ConstraintsMap(constraints);
@@ -1758,6 +1763,18 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     }
 
     getUserMediaImpl.getDisplayMedia(constraints, result, mediaStream);
+  }
+
+  public void getVirtualDisplayPreview(Result result) {
+    String streamId = getNextStreamUUID();
+    MediaStream mediaStream = mFactory.createLocalMediaStream(streamId);
+
+    if (mediaStream == null) {
+      resultError("getVirtualDisplayPreview", "Failed to create new media stream", result);
+      return;
+    }
+
+    getUserMediaImpl.getVirtualDisplayPreview(result, mediaStream);
   }
 
   public void getVirtualDisplayMedia(ConstraintsMap constraints, Result result) {

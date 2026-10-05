@@ -108,6 +108,7 @@ public class GetUserMediaImpl {
     private final Map<String, VideoCapturerInfoEx> mVideoCapturers = new HashMap<>();
     private final Map<String, SurfaceTextureHelper> mSurfaceTextureHelpers = new HashMap<>();
     private final Map<String, Object[]> mVirtualDisplayRefs = new HashMap<>();
+    private final Map<String, Object[]> mVirtualDisplayPreviewRefs = new HashMap<>();
     private final StateProvider stateProvider;
     private final Context applicationContext;
 
@@ -1011,6 +1012,52 @@ public class GetUserMediaImpl {
         return trackParams;
     }
 
+    void getVirtualDisplayPreview(final Result result, final MediaStream mediaStream) {
+        VirtualDisplayCapturer capturer = null;
+        for (Object[] refs : mVirtualDisplayRefs.values()) {
+            if (refs[0] instanceof VirtualDisplayCapturer) {
+                capturer = (VirtualDisplayCapturer) refs[0];
+            }
+        }
+        if (capturer == null) {
+            resultError("getVirtualDisplayPreview", "virtual display capture is not running", result);
+            return;
+        }
+
+        PeerConnectionFactory pcFactory = stateProvider.getPeerConnectionFactory();
+        VideoSource previewSource = pcFactory.createVideoSource(true);
+        capturer.setPreviewObserver(previewSource.getCapturerObserver());
+
+        String trackId = stateProvider.getNextTrackUUID();
+        VideoTrack previewTrack = pcFactory.createVideoTrack(trackId, previewSource);
+        mVirtualDisplayPreviewRefs.put(trackId, new Object[] { previewSource, previewTrack });
+
+        LocalVideoTrack previewLocalTrack = new LocalVideoTrack(previewTrack);
+        previewSource.setVideoProcessor(previewLocalTrack);
+        stateProvider.putLocalTrack(trackId, previewLocalTrack);
+
+        ConstraintsMap track_ = new ConstraintsMap();
+        track_.putBoolean("enabled", previewTrack.enabled());
+        track_.putString("id", trackId);
+        track_.putString("kind", previewTrack.kind());
+        track_.putString("label", previewTrack.kind());
+        track_.putString("readyState", previewTrack.state().toString());
+        track_.putBoolean("remote", false);
+
+        ConstraintsArray audioTracks = new ConstraintsArray();
+        ConstraintsArray videoTracks = new ConstraintsArray();
+        videoTracks.pushMap(track_);
+        mediaStream.addTrack(previewTrack);
+
+        String streamId = mediaStream.getId();
+        stateProvider.putLocalStream(streamId, mediaStream);
+        ConstraintsMap successResult = new ConstraintsMap();
+        successResult.putString("streamId", streamId);
+        successResult.putArray("audioTracks", audioTracks.toArrayList());
+        successResult.putArray("videoTracks", videoTracks.toArrayList());
+        result.success(successResult.toMap());
+    }
+
     void setVirtualDisplaySource(org.webrtc.VideoTrack track) {
         for (Object[] refs : mVirtualDisplayRefs.values()) {
             if (refs[0] instanceof VirtualDisplayCapturer) {
@@ -1020,6 +1067,16 @@ public class GetUserMediaImpl {
     }
 
     void removeVideoCapturer(String id) {
+        Object[] previewRefs = mVirtualDisplayPreviewRefs.remove(id);
+        if (previewRefs != null) {
+            Log.d(TAG, "removeVideoCapturer: detaching virtual display preview " + id);
+            for (Object[] refs : mVirtualDisplayRefs.values()) {
+                if (refs[0] instanceof VirtualDisplayCapturer) {
+                    ((VirtualDisplayCapturer) refs[0]).setPreviewObserver(null);
+                }
+            }
+            return;
+        }
         Object[] vdRefs = mVirtualDisplayRefs.remove(id);
         if (vdRefs != null) {
             Log.d(TAG, "removeVideoCapturer: shutting down virtual display for " + id);

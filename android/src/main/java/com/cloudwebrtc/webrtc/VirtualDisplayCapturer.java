@@ -59,6 +59,12 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         }
     };
 
+    private volatile CapturerObserver previewObserver;
+
+    public void setPreviewObserver(CapturerObserver observer) {
+        previewObserver = observer;
+    }
+
     public synchronized void setExternalSource(org.webrtc.VideoTrack track) {
         if (externalTrack != null) {
             externalTrack.removeSink(externalSink);
@@ -107,7 +113,12 @@ public class VirtualDisplayCapturer implements VideoCapturer {
         surfaceTextureHelper.startListening(new VideoSink() {
             @Override
             public void onFrame(VideoFrame frame) {
-                if (isDisposed || useExternalSource) return;
+                if (isDisposed) return;
+                CapturerObserver preview = previewObserver;
+                if (preview != null) {
+                    preview.onFrameCaptured(frame);
+                }
+                if (useExternalSource) return;
                 capturerObserver.onFrameCaptured(frame);
             }
         });
