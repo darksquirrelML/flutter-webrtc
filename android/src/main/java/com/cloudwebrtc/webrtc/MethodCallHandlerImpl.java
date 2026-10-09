@@ -125,6 +125,7 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
    * complexity and to (somewhat) separate concerns.
    */
   private GetUserMediaImpl getUserMediaImpl;
+  private com.cloudwebrtc.webrtc.audio.TeammateAudioMixer teammateAudioMixer;
 
   private CameraUtils cameraUtils;
 
@@ -359,6 +360,8 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audioProcessingController = new AudioProcessingController();
 
     factoryBuilder.setAudioProcessingFactory(audioProcessingController.externalAudioProcessingFactory);
+    teammateAudioMixer = new com.cloudwebrtc.webrtc.audio.TeammateAudioMixer();
+    audioProcessingController.capturePostProcessing.addProcessor(teammateAudioMixer);
 
     mFactory = factoryBuilder
             .setAudioDeviceModule(audioDeviceModule)
@@ -370,6 +373,22 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
   public void onMethodCall(MethodCall call, @NonNull Result notSafeResult) {
     final AnyThreadResult result = new AnyThreadResult(notSafeResult);
     switch (call.method) {
+      case "setAudioSourceTrack": {
+        String audioTrackId = call.argument("trackId");
+        org.webrtc.AudioTrack audioTrack = null;
+        if (audioTrackId != null && audioTrackId.length() > 0) {
+          MediaStreamTrack foundAudio = getTrackForId(audioTrackId, null);
+          if (foundAudio instanceof org.webrtc.AudioTrack) {
+            audioTrack = (org.webrtc.AudioTrack) foundAudio;
+          } else {
+            result.error("setAudioSourceTrack", "audio track not found: " + audioTrackId, null);
+            break;
+          }
+        }
+        teammateAudioMixer.setSourceTrack(audioTrack);
+        result.success(null);
+        break;
+      }
       case "setVirtualDisplaySource": {
         String sourceTrackId = call.argument("trackId");
         org.webrtc.VideoTrack sourceTrack = null;
