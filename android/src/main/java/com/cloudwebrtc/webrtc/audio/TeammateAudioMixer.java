@@ -88,7 +88,7 @@ public class TeammateAudioMixer
         if (processCount % 200 == 1) {
             Log.i(TAG, "buffer sample: first4bytes=" + (buffer.get(0) & 0xff) + "," + (buffer.get(1) & 0xff) + "," + (buffer.get(2) & 0xff) + "," + (buffer.get(3) & 0xff) + " limit=" + buffer.limit());
         }
-        int samples = b.remaining() / 2;
+        int samples = b.remaining() / 4;
         synchronized (LOCK) {
             for (int i = 0; i < samples; i++) {
                 short s = 0;
@@ -97,7 +97,7 @@ public class TeammateAudioMixer
                     readPos = (readPos + 1) % RING_SAMPLES;
                     available--;
                 }
-                b.putShort(i * 2, s);
+                b.putFloat(i * 4, (float) s);
             }
         }
     }
