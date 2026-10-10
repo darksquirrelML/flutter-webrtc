@@ -18,15 +18,18 @@ public class TeammateAudioMixer
     // About 2 seconds of 48 kHz mono 16-bit audio
     private static final int RING_SAMPLES = 96000;
 
-    private final short[] ring = new short[RING_SAMPLES];
-    private int readPos = 0;
-    private int writePos = 0;
-    private int available = 0;
+    private static final short[] ring = new short[RING_SAMPLES];
+    private static int readPos = 0;
+    private static int writePos = 0;
+    private static int available = 0;
+    private static final Object LOCK = new Object();
 
-    private volatile boolean active = false;
+    private static volatile boolean active = false;
     private volatile int micSampleRate = 48000;
     private volatile int micChannels = 1;
-    private AudioTrack currentTrack;
+    private static AudioTrack currentTrack;
+    private static TeammateAudioMixer sinkOwner;
+
     private int processCount = 0;
     private int dataCount = 0;
     private int allProcessCount = 0;
@@ -35,21 +38,25 @@ public class TeammateAudioMixer
         Log.i(TAG, "created");
     }
 
-    public synchronized void setSourceTrack(AudioTrack track) {
+    public void setSourceTrack(AudioTrack track) {
         Log.i(TAG, "setSourceTrack: " + (track != null ? track.id() : "null"));
-        if (currentTrack != null) {
-            currentTrack.removeSink(this);
+        synchronized (LOCK) {
+            if (currentTrack != null && sinkOwner != null) {
+                currentTrack.removeSink(sinkOwner);
+            }
             currentTrack = null;
-        }
-        readPos = 0;
-        writePos = 0;
-        available = 0;
-        if (track != null) {
-            currentTrack = track;
-            track.addSink(this);
-            active = true;
-        } else {
-            active = false;
+            sinkOwner = null;
+            readPos = 0;
+            writePos = 0;
+            available = 0;
+            if (track != null) {
+                currentTrack = track;
+                sinkOwner = this;
+                track.addSink(this);
+                active = true;
+            } else {
+                active = false;
+            }
         }
     }
 
@@ -79,7 +86,7 @@ public class TeammateAudioMixer
         }
         ByteBuffer b = buffer.duplicate().order(ByteOrder.nativeOrder());
         int samples = b.remaining() / 2;
-        synchronized (this) {
+        synchronized (LOCK) {
             for (int i = 0; i < samples; i++) {
                 short s = 0;
                 if (available > 0) {
@@ -103,7 +110,7 @@ public class TeammateAudioMixer
         if (!active || bitsPerSample != 16) return;
         ByteBuffer b = audioData.duplicate().order(ByteOrder.nativeOrder());
         int total = numberOfFrames * numberOfChannels;
-        synchronized (this) {
+        synchronized (LOCK) {
             // Simple version: only mono-to-mono at the same sample rate is handled.
             // Anything else is logged so we know what to build next.
             if (sampleRate != micSampleRate || numberOfChannels != micChannels) {
