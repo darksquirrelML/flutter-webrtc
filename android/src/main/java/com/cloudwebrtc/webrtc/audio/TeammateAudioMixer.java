@@ -85,6 +85,9 @@ public class TeammateAudioMixer
             Log.i(TAG, "process active: numFrames=" + numFrames + " bytes=" + buffer.remaining() + " ringAvailable=" + available);
         }
         ByteBuffer b = buffer.duplicate().order(ByteOrder.nativeOrder());
+        if (processCount % 200 == 1) {
+            Log.i(TAG, "buffer sample: first4bytes=" + (buffer.get(0) & 0xff) + "," + (buffer.get(1) & 0xff) + "," + (buffer.get(2) & 0xff) + "," + (buffer.get(3) & 0xff) + " limit=" + buffer.limit());
+        }
         int samples = b.remaining() / 2;
         synchronized (LOCK) {
             for (int i = 0; i < samples; i++) {
