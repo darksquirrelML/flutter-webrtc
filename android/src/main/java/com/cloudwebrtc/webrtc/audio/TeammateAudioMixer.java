@@ -29,6 +29,7 @@ public class TeammateAudioMixer
     private AudioTrack currentTrack;
     private int processCount = 0;
     private int dataCount = 0;
+    private int allProcessCount = 0;
 
     public synchronized void setSourceTrack(AudioTrack track) {
         Log.i(TAG, "setSourceTrack: " + (track != null ? track.id() : "null"));
@@ -51,6 +52,7 @@ public class TeammateAudioMixer
     // ---- microphone side ----
     @Override
     public void initialize(int sampleRateHz, int numChannels) {
+        Log.i(TAG, "initialize: rate=" + sampleRateHz + " ch=" + numChannels);
         micSampleRate = sampleRateHz;
         micChannels = numChannels;
     }
@@ -62,6 +64,10 @@ public class TeammateAudioMixer
 
     @Override
     public void process(int numBands, int numFrames, ByteBuffer buffer) {
+        allProcessCount++;
+        if (allProcessCount % 500 == 1) {
+            Log.i(TAG, "process called: active=" + active + " numFrames=" + numFrames + " bytes=" + buffer.remaining());
+        }
         if (!active) return;
         processCount++;
         if (processCount % 200 == 1) {
