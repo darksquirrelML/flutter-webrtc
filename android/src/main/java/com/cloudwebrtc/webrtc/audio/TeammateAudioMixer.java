@@ -14,7 +14,7 @@ import java.nio.ByteOrder;
  */
 public class TeammateAudioMixer
         implements AudioProcessingAdapter.ExternalAudioFrameProcessing, AudioTrackSink {
-    private static final String TAG = "TeammateAudioMixer";
+    private final String TAG = "TeammateAudioMixer#" + System.identityHashCode(this);
     // About 2 seconds of 48 kHz mono 16-bit audio
     private static final int RING_SAMPLES = 96000;
 
@@ -30,6 +30,10 @@ public class TeammateAudioMixer
     private int processCount = 0;
     private int dataCount = 0;
     private int allProcessCount = 0;
+
+    public TeammateAudioMixer() {
+        Log.i(TAG, "created");
+    }
 
     public synchronized void setSourceTrack(AudioTrack track) {
         Log.i(TAG, "setSourceTrack: " + (track != null ? track.id() : "null"));
