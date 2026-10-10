@@ -27,8 +27,11 @@ public class TeammateAudioMixer
     private volatile int micSampleRate = 48000;
     private volatile int micChannels = 1;
     private AudioTrack currentTrack;
+    private int processCount = 0;
+    private int dataCount = 0;
 
     public synchronized void setSourceTrack(AudioTrack track) {
+        Log.i(TAG, "setSourceTrack: " + (track != null ? track.id() : "null"));
         if (currentTrack != null) {
             currentTrack.removeSink(this);
             currentTrack = null;
@@ -60,6 +63,10 @@ public class TeammateAudioMixer
     @Override
     public void process(int numBands, int numFrames, ByteBuffer buffer) {
         if (!active) return;
+        processCount++;
+        if (processCount % 200 == 1) {
+            Log.i(TAG, "process active: numFrames=" + numFrames + " bytes=" + buffer.remaining() + " ringAvailable=" + available);
+        }
         ByteBuffer b = buffer.duplicate().order(ByteOrder.nativeOrder());
         int samples = b.remaining() / 2;
         synchronized (this) {
@@ -79,6 +86,10 @@ public class TeammateAudioMixer
     @Override
     public void onData(ByteBuffer audioData, int bitsPerSample, int sampleRate,
                        int numberOfChannels, int numberOfFrames, long absoluteCaptureTimestampMs) {
+        dataCount++;
+        if (dataCount % 200 == 1) {
+            Log.i(TAG, "onData: active=" + active + " bits=" + bitsPerSample + " rate=" + sampleRate + " ch=" + numberOfChannels + " frames=" + numberOfFrames);
+        }
         if (!active || bitsPerSample != 16) return;
         ByteBuffer b = audioData.duplicate().order(ByteOrder.nativeOrder());
         int total = numberOfFrames * numberOfChannels;
