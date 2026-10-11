@@ -304,7 +304,16 @@ public class MethodCallHandlerImpl implements MethodCallHandler, StateProvider {
     audioDeviceModuleBuilder.setSamplesReadyCallback(recordSamplesReadyCallbackAdapter);
     audioDeviceModuleBuilder.setPlaybackSamplesReadyCallback(playbackSamplesReadyCallbackAdapter);
 
-    recordSamplesReadyCallbackAdapter.addCallback(getUserMediaImpl.inputSamplesInterceptor);
+    recordSamplesReadyCallbackAdapter.addCallback(new JavaAudioDeviceModule.SamplesReadyCallback() {
+      @Override
+      public void onWebRtcAudioRecordSamplesReady(JavaAudioDeviceModule.AudioSamples audioSamples) {
+        JavaAudioDeviceModule.AudioSamples toRecord = audioSamples;
+        if (teammateAudioMixer != null) {
+          toRecord = teammateAudioMixer.replaceForRecording(audioSamples);
+        }
+        getUserMediaImpl.inputSamplesInterceptor.onWebRtcAudioRecordSamplesReady(toRecord);
+      }
+    });
 
     recordSamplesReadyCallbackAdapter.addCallback(new JavaAudioDeviceModule.SamplesReadyCallback() {
       @Override

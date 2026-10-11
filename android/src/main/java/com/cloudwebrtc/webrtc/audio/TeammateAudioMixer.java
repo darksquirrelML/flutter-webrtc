@@ -30,6 +30,11 @@ public class TeammateAudioMixer
     private static AudioTrack currentTrack;
     private static TeammateAudioMixer sinkOwner;
 
+    private static final short[] recRing = new short[RING_SAMPLES];
+    private static int recReadPos = 0;
+    private static int recWritePos = 0;
+    private static int recAvailable = 0;
+
     private int processCount = 0;
     private int dataCount = 0;
     private int allProcessCount = 0;
@@ -49,6 +54,9 @@ public class TeammateAudioMixer
             readPos = 0;
             writePos = 0;
             available = 0;
+            recReadPos = 0;
+            recWritePos = 0;
+            recAvailable = 0;
             if (track != null) {
                 currentTrack = track;
                 sinkOwner = this;
@@ -127,7 +135,35 @@ public class TeammateAudioMixer
                     writePos = (writePos + 1) % RING_SAMPLES;
                     available++;
                 }
+                if (recAvailable < RING_SAMPLES) {
+                    recRing[recWritePos] = s;
+                    recWritePos = (recWritePos + 1) % RING_SAMPLES;
+                    recAvailable++;
+                }
             }
         }
+    }
+
+    public org.webrtc.audio.JavaAudioDeviceModule.AudioSamples replaceForRecording(
+            org.webrtc.audio.JavaAudioDeviceModule.AudioSamples original) {
+        if (!active) return original;
+        byte[] src = original.getData();
+        byte[] out = new byte[src.length];
+        ByteBuffer b = ByteBuffer.wrap(out).order(ByteOrder.nativeOrder());
+        int samples = src.length / 2;
+        synchronized (LOCK) {
+            for (int i = 0; i < samples; i++) {
+                short s = 0;
+                if (recAvailable > 0) {
+                    s = recRing[recReadPos];
+                    recReadPos = (recReadPos + 1) % RING_SAMPLES;
+                    recAvailable--;
+                }
+                b.putShort(i * 2, s);
+            }
+        }
+        return new org.webrtc.audio.JavaAudioDeviceModule.AudioSamples(
+                original.getAudioFormat(), original.getChannelCount(),
+                original.getSampleRate(), out);
     }
 }
