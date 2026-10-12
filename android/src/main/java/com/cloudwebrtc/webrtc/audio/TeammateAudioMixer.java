@@ -34,6 +34,8 @@ public class TeammateAudioMixer
     private static int recReadPos = 0;
     private static int recWritePos = 0;
     private static int recAvailable = 0;
+    private static int recCalls = 0;
+    private static int recUnderruns = 0;
 
     private int processCount = 0;
     private int dataCount = 0;
@@ -152,6 +154,11 @@ public class TeammateAudioMixer
         ByteBuffer b = ByteBuffer.wrap(out).order(ByteOrder.nativeOrder());
         int samples = src.length / 2;
         synchronized (LOCK) {
+            recCalls++;
+            if (recAvailable < samples) recUnderruns++;
+            if (recCalls % 200 == 1) {
+                Log.i(TAG, "rec buffer: available=" + recAvailable + " needed=" + samples + " underruns=" + recUnderruns + " calls=" + recCalls);
+            }
             for (int i = 0; i < samples; i++) {
                 short s = 0;
                 if (recAvailable > 0) {
