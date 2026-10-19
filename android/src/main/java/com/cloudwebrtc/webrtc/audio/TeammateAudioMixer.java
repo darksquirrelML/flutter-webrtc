@@ -47,25 +47,31 @@ public class TeammateAudioMixer
 
     public void setSourceTrack(AudioTrack track) {
         Log.i(TAG, "setSourceTrack: " + (track != null ? track.id() : "null"));
+        AudioTrack oldTrack;
+        TeammateAudioMixer oldOwner;
         synchronized (LOCK) {
-            if (currentTrack != null && sinkOwner != null) {
-                currentTrack.removeSink(sinkOwner);
-            }
+            oldTrack = currentTrack;
+            oldOwner = sinkOwner;
             currentTrack = null;
             sinkOwner = null;
+            active = false;
             readPos = 0;
             writePos = 0;
             available = 0;
             recReadPos = 0;
             recWritePos = 0;
             recAvailable = 0;
-            if (track != null) {
+        }
+        // Sink calls are made outside the lock, so the sound threads can finish.
+        if (oldTrack != null && oldOwner != null) {
+            oldTrack.removeSink(oldOwner);
+        }
+        if (track != null) {
+            track.addSink(this);
+            synchronized (LOCK) {
                 currentTrack = track;
                 sinkOwner = this;
-                track.addSink(this);
                 active = true;
-            } else {
-                active = false;
             }
         }
     }
